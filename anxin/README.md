@@ -202,11 +202,18 @@ To run the test suite (no live Gonka key or network access required -- see
 `GONKA_MOCK_MODE` below):
 
 ```bash
-pip install -r requirements-dev.txt
-pytest -q          # 91 tests
-ruff check app tests
-pyright app
+pip install "pytest>=8.3,<9" "pytest-asyncio>=0.24,<1.0" "respx>=0.21,<1.0"
+pytest -q          # 159 tests
 ```
+
+> **Known issue:** `pip install -r requirements-dev.txt` currently fails
+> with `ResolutionImpossible`. It pins `pytest>=9.0.3`, but
+> `pytest-asyncio<1.0` requires pytest 8, so pip cannot satisfy both. Install
+> the three test packages explicitly as above until the pin is relaxed to
+> `pytest>=8.3,<10` (or `pytest-asyncio` is moved to `>=1.0`). The suite is
+> verified green with pytest 8.4.2 and pytest-asyncio 0.26.0. `ruff` and
+> `pyright` can still be installed separately:
+> `pip install "ruff>=0.6" "pyright>=1.1.383"`.
 
 ### Frontend
 
@@ -430,5 +437,7 @@ optimization (`GON-08`, P2).
 | FE | Frontend & UX lead |
 | QA/DOCS | Quality, documentation & pitch lead |
 
-See `AI_USE_DISCLOSURE.md` for how AI coding assistance was used, and
-`THIRD_PARTY_NOTICES.md` / `LICENSE` for open-source attribution.
+Who committed what, by git handle, is listed in the root
+[`README.md`](../README.md#contributors); the same breakdown, plus which
+members have confirmed their own AI use, is in `AI_USE_DISCLOSURE.md`.
+See `THIRD_PARTY_NOTICES.md` / `LICENSE` for open-source attribution.

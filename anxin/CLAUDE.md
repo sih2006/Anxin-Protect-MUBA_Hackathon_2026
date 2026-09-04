@@ -32,7 +32,7 @@ every request.
 ```bash
 # backend (from backend/ — .env is read relative to CWD)
 ./setup.sh backend                      # or setup-backend.ps1 on PowerShell
-pytest -q                               # 114 tests, no network needed
+pytest -q                               # 159 tests, no network needed (see README "Tests" for the dev-deps pin issue)
 ruff check app tests && pyright app
 
 # frontend
