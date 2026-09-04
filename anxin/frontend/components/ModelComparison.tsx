@@ -1,8 +1,9 @@
 "use client";
 
 import { useLanguage, pickBilingual } from "@/lib/i18n";
-import type { ResultsStringKey } from "@/lib/i18n";
-import type { ModelVerdict, Verdict } from "@/lib/types";
+import type { Dictionary, ResultsStringKey } from "@/lib/i18n";
+import type { Language, ModelVerdict, Verdict } from "@/lib/types";
+import Icon, { type IconName } from "./Icon";
 
 const VERDICT_LABEL_KEY: Record<Verdict, ResultsStringKey> = {
   credible: "verdictCredible",
@@ -10,6 +11,41 @@ const VERDICT_LABEL_KEY: Record<Verdict, ResultsStringKey> = {
   high_risk: "verdictHighRisk",
   insufficient: "verdictInsufficient",
 };
+
+/** UI-07: a verdict never arrives as colour alone -- glyph and words carry it. */
+export const VERDICT_CHROME: Record<Verdict, { icon: IconName; box: string; fg: string }> = {
+  credible: { icon: "check", box: "border-anxin-risk-low bg-anxin-risk-low-bg", fg: "text-anxin-risk-low" },
+  questionable: { icon: "question", box: "border-anxin-risk-medium bg-anxin-risk-medium-bg", fg: "text-anxin-risk-medium" },
+  high_risk: { icon: "cross", box: "border-anxin-risk-high bg-anxin-risk-high-bg", fg: "text-anxin-risk-high" },
+  insufficient: { icon: "dash", box: "border-anxin-risk-unknown bg-anxin-risk-unknown-bg", fg: "text-anxin-risk-unknown" },
+};
+
+function VerdictPill({ verdict, t }: { verdict: Verdict; t: Dictionary }) {
+  const chrome = VERDICT_CHROME[verdict];
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${chrome.box} ${chrome.fg}`}>
+      <Icon name={chrome.icon} className="h-3.5 w-3.5" />
+      {t.results[VERDICT_LABEL_KEY[verdict]]}
+    </span>
+  );
+}
+
+function ScoreRow({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="flex items-baseline justify-between gap-2">
+      <dt className="text-sm text-anxin-ink-muted">{label}</dt>
+      <dd className="text-lg font-bold tabular-nums text-anxin-ink">{value}</dd>
+    </div>
+  );
+}
+
+function Reasoning({ verdict, language }: { verdict: ModelVerdict; language: Language }) {
+  return (
+    <p className="text-xs leading-relaxed text-anxin-ink" lang={language}>
+      {pickBilingual(language, verdict.reasoning_en, verdict.reasoning_zh)}
+    </p>
+  );
+}
 
 /**
  * Side-by-side view of what each verifier concluded on its own.
@@ -37,59 +73,74 @@ export default function ModelComparison({
   // and it is exactly the failure mode their mentor flagged.
   const crossVerified = verdicts.length === 2;
 
+  // Deliberately two different shapes, not one shape in two colours. A single
+  // opinion must not be able to masquerade as a comparison at a glance.
+  if (!crossVerified) {
+    return (
+      <section className="overflow-hidden rounded-xl2 border-2 border-anxin-risk-medium bg-anxin-risk-medium-bg shadow-sm">
+        <div className="flex items-start gap-3 p-5">
+          <Icon name="warning" className="mt-0.5 h-6 w-6 text-anxin-risk-medium" strokeWidth={2} />
+          <div>
+            <h3 className="text-base font-semibold text-anxin-risk-medium">{t.results.singleModelHeading}</h3>
+            <p className="mt-1 max-w-prose text-xs leading-relaxed text-anxin-ink-muted">
+              {t.results.singleModelHint}
+            </p>
+          </div>
+        </div>
+
+        {verdicts.map((v, i) => (
+          <div key={i} className="border-t-2 border-anxin-risk-medium bg-anxin-surface p-5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm font-semibold text-anxin-brand-dark">{v.meta.model_label}</p>
+              <VerdictPill verdict={v.verdict} t={t} />
+            </div>
+
+            <dl className="mt-4 grid grid-cols-1 gap-x-8 gap-y-2 sm:grid-cols-2">
+              <ScoreRow label={t.results.truthScore} value={v.credibility_score} />
+              <ScoreRow label={t.results.fraudRiskScore} value={v.fraud_risk_score} />
+            </dl>
+
+            <div className="mt-4 border-t border-anxin-border pt-3">
+              <Reasoning verdict={v} language={language} />
+            </div>
+          </div>
+        ))}
+      </section>
+    );
+  }
+
   return (
-    <section
-      className={`rounded-xl2 p-5 shadow-sm ${
-        crossVerified
-          ? "border border-anxin-border bg-anxin-surface"
-          : "border-2 border-anxin-risk-medium bg-anxin-risk-medium-bg"
-      }`}
-    >
-      <h3
-        className={`text-base font-semibold ${
-          crossVerified ? "text-anxin-ink" : "text-anxin-risk-medium"
-        }`}
-      >
-        {crossVerified ? t.results.modelComparisonHeading : t.results.singleModelHeading}
-      </h3>
-      <p className="mt-1 text-xs text-anxin-ink-muted">
-        {crossVerified ? t.results.modelComparisonHint : t.results.singleModelHint}
+    <section className="rounded-xl2 border border-anxin-border bg-anxin-surface p-5 shadow-sm">
+      <h3 className="text-base font-semibold text-anxin-ink">{t.results.modelComparisonHeading}</h3>
+      <p className="mt-1 max-w-prose text-xs leading-relaxed text-anxin-ink-muted">
+        {t.results.modelComparisonHint}
       </p>
 
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
         {verdicts.map((v, i) => (
-          <div key={i} className="rounded-lg border border-anxin-border bg-anxin-bg p-4">
-            <p className="text-sm font-semibold text-anxin-brand-dark">{v.meta.model_label}</p>
+          <div key={i} className="flex flex-col rounded-lg border border-anxin-border bg-anxin-bg">
+            <div className="flex flex-wrap items-center justify-between gap-2 p-4 pb-3">
+              <p className="text-sm font-semibold text-anxin-brand-dark">{v.meta.model_label}</p>
+              <VerdictPill verdict={v.verdict} t={t} />
+            </div>
 
-            <dl className="mt-3 space-y-1.5 text-sm">
-              <div className="flex items-baseline justify-between gap-2">
-                <dt className="text-anxin-ink-muted">{t.results.truthScore}</dt>
-                <dd className="text-lg font-bold tabular-nums text-anxin-ink">{v.credibility_score}</dd>
-              </div>
-              <div className="flex items-baseline justify-between gap-2">
-                <dt className="text-anxin-ink-muted">{t.results.fraudRiskScore}</dt>
-                <dd className="text-lg font-bold tabular-nums text-anxin-ink">{v.fraud_risk_score}</dd>
-              </div>
-              <div className="flex items-baseline justify-between gap-2">
-                <dt className="text-anxin-ink-muted">{t.results.modelVerdictLabel}</dt>
-                <dd className="text-right text-sm font-medium text-anxin-ink">
-                  {t.results[VERDICT_LABEL_KEY[v.verdict]]}
-                </dd>
-              </div>
+            <div className="border-t border-anxin-border" />
+
+            <dl className="space-y-1.5 p-4 pt-3">
+              <ScoreRow label={t.results.truthScore} value={v.credibility_score} />
+              <ScoreRow label={t.results.fraudRiskScore} value={v.fraud_risk_score} />
             </dl>
 
-            <p className="mt-3 border-t border-anxin-border pt-3 text-xs leading-relaxed text-anxin-ink" lang={language}>
-              {pickBilingual(language, v.reasoning_en, v.reasoning_zh)}
-            </p>
+            <div className="mt-auto border-t border-anxin-border p-4 pt-3">
+              <Reasoning verdict={v} language={language} />
+            </div>
           </div>
         ))}
       </div>
 
-      {crossVerified && (
-        <p className="mt-3 text-center text-xs font-medium text-anxin-ink-muted tabular-nums">
-          {t.results.modelGap(scoreDelta)}
-        </p>
-      )}
+      <p className="mt-3 text-center text-xs font-medium tabular-nums text-anxin-ink-muted">
+        {t.results.modelGap(scoreDelta)}
+      </p>
     </section>
   );
 }

@@ -20,6 +20,7 @@ const config: Config = {
           border: "#e2e2e0",
           brand: "#1f5f5b",
           "brand-dark": "#153f3d",
+          "brand-soft": "#e6f0ef",
           risk: {
             low: "#1a7a43",
             "low-bg": "#e8f6ee",

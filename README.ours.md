@@ -121,16 +121,6 @@ through a development-assistant AI model. See
 ```
 frontend/   Next.js 14 (App Router) + TypeScript + Tailwind
               -> talks only to our own backend, never directly to Gonka
-  components/Icon.tsx            original inline-SVG set; the icon half of
-                                 every "colour + icon + words" signal
-  components/InputPanel.tsx      text / link / screenshot entry + OCR review
-  components/TruthScoreGauge.tsx SVG arc for the Truth Score, plus the
-                                 separate scam-risk band beneath it
-  components/ModelComparison.tsx per-model verdicts; two-column when
-                                 cross-verified, a distinct single-column
-                                 amber state when only one model answered
-  components/ResultsPanel.tsx    verdict, scores, warnings, next steps
-  lib/dictionaries/{en,zh}.ts    every user-facing string, EN and ZH
 backend/    FastAPI + Pydantic
   app/gonka_client.py   pinned, transparent Gonka Router client
   app/evidence.py       SSRF-guarded URL fetch + keyless web search
@@ -154,28 +144,6 @@ Design principles carried through the whole codebase:
   falsely precise number. See `backend/app/consensus.py`.
 - **No raw stack trace, ever, reaches a user.** Every router catches its
   domain errors; a global handler catches everything else.
-
-### Interface rules
-
-The people this is for are often older, sometimes colour-blind, and always
-worried when they arrive. Three rules follow from that, and the code holds
-to them:
-
-- **No status is carried by colour alone.** Every risk, verdict and error
-  state pairs a colour with an icon *and* a text label. The icons are
-  original inline SVG (`components/Icon.tsx`) rather than text glyphs like
-  `✓` / `⚠`, because those are CJK-ambiguous codepoints — with a Chinese
-  font active the browser often substitutes a full-width or emoji variant,
-  so the same warning rendered at a different size in EN and ZH.
-- **The two scores are never blended into one signal.** The Truth Score
-  (does the evidence support this?) and the scam risk band (does this look
-  like a scam?) answer different questions, and a believable message can
-  still be a scam. They are shown as two things, deliberately, so a green
-  arc can never be misread as "safe".
-- **No user-facing string is hardcoded in a component.** Every word comes
-  from `lib/dictionaries/en.ts` and `zh.ts`, which share one `Dictionary`
-  interface — so a key added to one language fails the type check until it
-  exists in the other.
 
 ## Quickstart
 

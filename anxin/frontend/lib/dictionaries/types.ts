@@ -17,6 +17,7 @@ export interface Dictionary {
     modeText: string;
     modeUrl: string;
     modeScreenshot: string;
+    analysisModeLabel: string;
     analysisFactCheck: string;
     analysisMeme: string;
     textPlaceholder: string;
@@ -69,6 +70,12 @@ export interface Dictionary {
     fraudRiskScore: string;
     fraudRiskHint: string;
     warningSignsHeading: string;
+    claimsHeading: string;
+    claimsHint: string;
+    claimFactual: string;
+    claimOpinion: string;
+    claimUnverifiable: string;
+    evidenceSourceCount: (count: number) => string;
     evidenceQualityLabel: string;
     evidenceStrong: string;
     evidenceMixed: string;

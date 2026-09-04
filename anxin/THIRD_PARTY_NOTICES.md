@@ -57,12 +57,36 @@ service.
 
 ## UI components
 
-No third-party component library (e.g. shadcn/ui, 21st.dev) is vendored into
-this repository. Team Tenners scoped `UI-10` ("adapt selected shadcn/
-21st.dev components with attribution") as P1 and, per the P0 scope gate
-(Table 9), built a small hand-rolled, Tailwind-based component set instead so
-that P0 delivery was never put at risk. If shadcn/ui components are adopted
-later, their license (MIT) and the exact components used will be listed here.
+**No third-party component library is vendored into this repository, and none
+is installed.** `frontend/package.json` has exactly three runtime
+dependencies — `next`, `react`, `react-dom`. There is no shadcn/ui, no Radix,
+no `framer-motion`, no icon package.
+
+`UI-10` ("adapt selected shadcn / 21st.dev components with attribution") was
+subsequently delivered in that form: two community components from
+[21st.dev](https://21st.dev) were used as **design references** — their
+layout and geometry were studied and reimplemented from scratch in this
+project's own Tailwind token vocabulary. No file, snippet, or package from
+either was copied into this repository.
+
+| Reference | Author | License | What was taken |
+|---|---|---|---|
+| [Animated Radial Chart](https://21st.dev/@isaiahbjork/components/animated-radial-chart) | isaiahbjork | MIT | Semicircular-arc geometry only: the `radius = size × 0.35` proportion, the single-path arc construction, the inner hairline, and the 0/100 endpoint label placement, in `frontend/components/TruthScoreGauge.tsx` |
+| [Us vs Them Comparison](https://21st.dev/@7ovr/components/comparison-2) | 7ovr | MIT | Card composition only: two symmetric columns, header + status badge, separator rule, and the icon-chip-per-row treatment, in `frontend/components/ModelComparison.tsx` |
+
+What was **not** taken, and was written for this project instead:
+
+- The originals depend on `framer-motion`, shadcn `Card`/`Badge`/`Button`/
+  `Separator`, `@radix-ui/*`, `class-variance-authority` and
+  `@remixicon/react`. None of these are installed here. The arc animates with
+  a plain CSS `stroke-dashoffset` transition that honours
+  `prefers-reduced-motion`; the cards are plain `div`s using the `anxin-*`
+  tokens in `frontend/tailwind.config.ts`.
+- The radial chart's orange-to-red gradient, drop shadows and count-up
+  animation were deliberately dropped. Risk colour in Anxin is semantic, so a
+  decorative gradient would have conflicted with the meaning of the band.
+- Every icon in `frontend/components/Icon.tsx` is original SVG written for
+  this project, not from an icon library.
 
 ## Gonka Router
 

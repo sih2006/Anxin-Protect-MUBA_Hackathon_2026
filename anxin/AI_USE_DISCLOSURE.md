@@ -24,7 +24,14 @@ criteria.
   the consensus/disagreement rules in `backend/app/consensus.py` were
   specified by the team and implemented to those specifications.
 - No code, design, or content was copied from any other hackathon
-  participant's project, template marketplace, or closed-source repository.
+  participant's project or closed-source repository.
+- Two MIT-licensed community components from the 21st.dev catalogue were
+  consulted as **design references** for the score gauge and the model
+  comparison card, under `UI-10`. Their geometry and layout were
+  reimplemented in this project's own tokens; no file, snippet or package
+  from either was copied in, and neither added a dependency. Both are
+  attributed with links and a precise statement of what was taken in
+  `THIRD_PARTY_NOTICES.md` ("UI components").
 
 ## No prior repository was reused
 

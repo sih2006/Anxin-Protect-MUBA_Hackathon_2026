@@ -4,9 +4,15 @@ import { useRef, useState } from "react";
 import { useLanguage } from "@/lib/i18n";
 import type { AnalysisMode, InputMode } from "@/lib/types";
 import { runOcr } from "@/lib/api";
+import Icon, { type IconName } from "./Icon";
 
 const MAX_CHARS = 4000;
 const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+
+/** Weak focus rings fail the people this tool is for. One shared, obviously
+ * visible focus treatment on every interactive surface. */
+const FOCUS = "focus:outline-none focus-visible:ring-2 focus-visible:ring-anxin-brand focus-visible:ring-offset-2 focus-visible:ring-offset-anxin-surface";
+const FIELD = `w-full rounded-xl border-2 border-anxin-border bg-anxin-surface p-4 text-lg leading-relaxed text-anxin-ink placeholder:text-anxin-ink-muted ${FOCUS} focus-visible:border-anxin-brand`;
 
 export interface SubmitPayload {
   inputMode: InputMode;
@@ -79,56 +85,85 @@ export default function InputPanel({ onSubmit, disabled }: Props) {
     onSubmit({ inputMode: tab, analysisMode, content: content.trim() });
   }
 
-  const tabs: { key: Tab; label: string }[] = [
-    { key: "text", label: t.input.modeText },
-    { key: "url", label: t.input.modeUrl },
-    { key: "screenshot", label: t.input.modeScreenshot },
+  // The icon repeats what the word says. That redundancy is the point: a
+  // recognisable shape is faster to find than read, and survives a language
+  // the reader is less fluent in.
+  const tabs: { key: Tab; label: string; icon: IconName }[] = [
+    { key: "text", label: t.input.modeText, icon: "text" },
+    { key: "url", label: t.input.modeUrl, icon: "link" },
+    { key: "screenshot", label: t.input.modeScreenshot, icon: "image" },
   ];
 
   return (
-    <section className="rounded-xl2 border border-anxin-border bg-anxin-surface p-5 shadow-sm sm:p-6" aria-labelledby="input-heading">
-      <h2 id="input-heading" className="text-lg font-semibold text-anxin-ink">
+    <section className="rounded-xl2 border border-anxin-border bg-anxin-surface p-5 shadow-sm sm:p-8" aria-labelledby="input-heading">
+      <h2 id="input-heading" className="text-2xl font-semibold tracking-tight text-anxin-ink">
         {t.input.heading}
       </h2>
 
-      <div role="tablist" aria-label={t.input.heading} className="mt-4 flex gap-2">
+      {/* Segmented control rather than three loose pills: one enclosure, one
+          filled segment. Fewer competing shapes to parse. Targets are sized
+          for fingers and unsteady hands, not cursors. */}
+      <div
+        role="tablist"
+        aria-label={t.input.heading}
+        className="mt-5 grid grid-cols-3 rounded-xl border-2 border-anxin-border bg-anxin-bg p-1"
+      >
         {tabs.map((tabItem) => (
           <button
             key={tabItem.key}
             type="button"
             role="tab"
+            id={`tab-${tabItem.key}`}
             aria-selected={tab === tabItem.key}
-            className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+            aria-controls="input-panel"
+            className={`flex items-center justify-center gap-1.5 rounded-lg px-1.5 py-3 text-sm font-semibold transition sm:gap-2 sm:px-3 sm:text-base ${FOCUS} ${
               tab === tabItem.key
-                ? "bg-anxin-brand text-white"
-                : "border border-anxin-border bg-anxin-surface text-anxin-ink hover:border-anxin-brand"
+                ? "bg-anxin-brand text-white shadow-sm"
+                : "text-anxin-ink-muted hover:bg-anxin-surface hover:text-anxin-ink"
             }`}
             onClick={() => {
               setTab(tabItem.key);
               setFormError(null);
             }}
           >
+            <Icon name={tabItem.icon} className="h-4 w-4 sm:h-5 sm:w-5" />
             {tabItem.label}
           </button>
         ))}
       </div>
 
-      <div className="mt-3 flex gap-4" role="radiogroup" aria-label="analysis mode">
-        {(["fact_check", "meme"] as AnalysisMode[]).map((mode) => (
-          <label key={mode} className="flex items-center gap-2 text-sm text-anxin-ink">
-            <input
-              type="radio"
-              name="analysisMode"
-              checked={analysisMode === mode}
-              onChange={() => setAnalysisMode(mode)}
-              className="h-4 w-4 accent-anxin-brand"
-            />
-            {mode === "fact_check" ? t.input.analysisFactCheck : t.input.analysisMeme}
-          </label>
-        ))}
-      </div>
+      {/* Two large selectable cards instead of native radios: a 16px radio
+          is a hard target at 70. The real <input> stays for the keyboard and
+          screen readers; the card is its label. */}
+      <fieldset className="mt-5">
+        <legend className="text-base font-medium text-anxin-ink-muted">{t.input.analysisModeLabel}</legend>
+        <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {(["fact_check", "meme"] as AnalysisMode[]).map((mode) => {
+            const checked = analysisMode === mode;
+            return (
+              <label
+                key={mode}
+                className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 px-4 py-3.5 text-base font-medium transition ${
+                  checked
+                    ? "border-anxin-brand bg-anxin-brand-soft text-anxin-brand-dark"
+                    : "border-anxin-border bg-anxin-surface text-anxin-ink hover:border-anxin-ink-muted"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="analysisMode"
+                  checked={checked}
+                  onChange={() => setAnalysisMode(mode)}
+                  className={`h-5 w-5 shrink-0 accent-anxin-brand ${FOCUS}`}
+                />
+                {mode === "fact_check" ? t.input.analysisFactCheck : t.input.analysisMeme}
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
 
-      <form onSubmit={handleSubmit} className="mt-4">
+      <form onSubmit={handleSubmit} className="mt-6" id="input-panel" role="tabpanel" aria-labelledby={`tab-${tab}`}>
         {tab === "text" && (
           <div>
             <label htmlFor="text-input" className="sr-only">
@@ -139,11 +174,13 @@ export default function InputPanel({ onSubmit, disabled }: Props) {
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder={t.input.textPlaceholder}
-              rows={5}
+              rows={7}
               maxLength={MAX_CHARS + 200}
-              className="w-full resize-y rounded-lg border border-anxin-border bg-anxin-bg p-3 text-anxin-ink placeholder:text-anxin-ink-muted focus:border-anxin-brand"
+              className={`${FIELD} resize-y`}
             />
-            <p className="mt-1 text-right text-xs text-anxin-ink-muted">{t.input.charCount(text.length, MAX_CHARS)}</p>
+            <p className="mt-2 text-right text-sm tabular-nums text-anxin-ink-muted">
+              {t.input.charCount(text.length, MAX_CHARS)}
+            </p>
           </div>
         )}
 
@@ -159,7 +196,7 @@ export default function InputPanel({ onSubmit, disabled }: Props) {
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder={t.input.urlPlaceholder}
-              className="w-full rounded-lg border border-anxin-border bg-anxin-bg p-3 text-anxin-ink placeholder:text-anxin-ink-muted focus:border-anxin-brand"
+              className={FIELD}
             />
           </div>
         )}
@@ -169,7 +206,7 @@ export default function InputPanel({ onSubmit, disabled }: Props) {
             <label htmlFor="file-input" className="block text-sm font-medium text-anxin-ink">
               {t.input.uploadLabel}
             </label>
-            <p className="mt-1 text-xs text-anxin-ink-muted">{t.input.uploadHint}</p>
+            <p className="mt-1 max-w-prose text-xs leading-relaxed text-anxin-ink-muted">{t.input.uploadHint}</p>
             <input
               id="file-input"
               ref={fileInputRef}
@@ -179,7 +216,7 @@ export default function InputPanel({ onSubmit, disabled }: Props) {
                 const file = e.target.files?.[0];
                 if (file) void handleFile(file);
               }}
-              className="mt-2 block w-full text-sm text-anxin-ink file:mr-3 file:rounded-full file:border-0 file:bg-anxin-brand file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-anxin-brand-dark"
+              className={`mt-3 block w-full rounded-lg text-sm text-anxin-ink ${FOCUS} file:mr-3 file:rounded-md file:border-0 file:bg-anxin-brand file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-anxin-brand-dark`}
             />
 
             {ocrState.phase === "extracting" && (
@@ -195,11 +232,11 @@ export default function InputPanel({ onSubmit, disabled }: Props) {
             )}
 
             {ocrState.phase === "review" && (
-              <div className="mt-3 rounded-lg border border-anxin-border bg-anxin-bg p-3">
+              <div className="mt-4 rounded-lg border border-anxin-border bg-anxin-bg p-4">
                 <p className="text-sm font-medium text-anxin-ink">{t.ocr.reviewHeading}</p>
-                <p className="mt-1 text-xs text-anxin-ink-muted">{t.ocr.reviewHint}</p>
+                <p className="mt-1 max-w-prose text-xs leading-relaxed text-anxin-ink-muted">{t.ocr.reviewHint}</p>
                 {ocrState.warning && (
-                  <p role="alert" className="mt-1 text-xs text-anxin-risk-medium">
+                  <p role="alert" className="mt-2 text-xs font-medium text-anxin-risk-medium">
                     {ocrState.warning}
                   </p>
                 )}
@@ -209,7 +246,7 @@ export default function InputPanel({ onSubmit, disabled }: Props) {
                   onChange={(e) => setOcrState({ phase: "review", text: e.target.value, warning: ocrState.warning })}
                   rows={5}
                   maxLength={MAX_CHARS + 200}
-                  className="mt-2 w-full resize-y rounded-lg border border-anxin-border bg-anxin-surface p-3 text-anxin-ink focus:border-anxin-brand"
+                  className={`mt-3 ${FIELD} resize-y bg-anxin-surface`}
                 />
               </div>
             )}
@@ -217,20 +254,20 @@ export default function InputPanel({ onSubmit, disabled }: Props) {
         )}
 
         {tab === "text" && (
-          <div className="mt-3">
-            <p className="text-xs font-medium text-anxin-ink-muted">{t.input.tryExample}</p>
+          <div className="mt-5">
+            <p className="text-sm font-medium text-anxin-ink-muted">{t.input.tryExample}</p>
             <div className="mt-2 flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={() => { setText(t.input.exampleScamText); setFormError(null); }}
-                className="rounded-full border border-anxin-border bg-anxin-bg px-3 py-1.5 text-xs font-medium text-anxin-ink transition hover:border-anxin-brand hover:text-anxin-brand"
+                className={`rounded-full border-2 border-anxin-border bg-anxin-bg px-4 py-2 text-sm font-medium text-anxin-ink transition hover:border-anxin-brand hover:text-anxin-brand ${FOCUS}`}
               >
                 {t.input.exampleScamLabel}
               </button>
               <button
                 type="button"
                 onClick={() => { setText(t.input.exampleClaimText); setFormError(null); }}
-                className="rounded-full border border-anxin-border bg-anxin-bg px-3 py-1.5 text-xs font-medium text-anxin-ink transition hover:border-anxin-brand hover:text-anxin-brand"
+                className={`rounded-full border-2 border-anxin-border bg-anxin-bg px-4 py-2 text-sm font-medium text-anxin-ink transition hover:border-anxin-brand hover:text-anxin-brand ${FOCUS}`}
               >
                 {t.input.exampleClaimLabel}
               </button>
@@ -239,15 +276,18 @@ export default function InputPanel({ onSubmit, disabled }: Props) {
         )}
 
         {formError && (
-          <p role="alert" className="mt-3 text-sm font-medium text-anxin-risk-high">
-            {formError}
+          <p role="alert" className="mt-4 flex items-start gap-2.5 rounded-xl border-2 border-anxin-risk-high bg-anxin-risk-high-bg px-4 py-3 text-base font-medium text-anxin-risk-high">
+            <Icon name="cross" className="mt-0.5 h-5 w-5" />
+            <span>{formError}</span>
           </p>
         )}
 
+        {/* One primary action, full width at every size. The person only has
+            to find one thing. */}
         <button
           type="submit"
           disabled={disabled || (tab === "screenshot" && ocrState.phase !== "review")}
-          className="mt-4 w-full rounded-lg bg-anxin-brand px-4 py-3 text-base font-semibold text-white transition hover:bg-anxin-brand-dark disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+          className={`mt-6 w-full rounded-xl bg-anxin-brand px-6 py-4 text-lg font-semibold text-white shadow-sm transition hover:bg-anxin-brand-dark disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS}`}
         >
           {disabled ? t.input.submitting : tab === "screenshot" ? t.ocr.confirmAndCheck : t.input.submit}
         </button>

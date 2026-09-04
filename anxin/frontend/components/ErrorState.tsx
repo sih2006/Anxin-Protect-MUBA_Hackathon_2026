@@ -2,6 +2,7 @@
 
 import { useLanguage } from "@/lib/i18n";
 import { ApiError } from "@/lib/types";
+import Icon from "./Icon";
 
 /** UI-09: every known failure path (rate-limited, timeout, network, generic)
  * gets an understandable, actionable message and a retry -- never a raw
@@ -18,13 +19,16 @@ export default function ErrorState({ error, onRetry }: { error: unknown; onRetry
   }
 
   return (
-    <section role="alert" className="rounded-xl2 border border-anxin-risk-high bg-anxin-risk-high-bg p-6 text-center shadow-sm">
-      <p className="text-base font-semibold text-anxin-risk-high">{t.errors.heading}</p>
-      <p className="mt-2 text-sm text-anxin-ink">{message}</p>
+    <section role="alert" className="rounded-xl2 border-2 border-anxin-risk-high bg-anxin-risk-high-bg p-6 text-center shadow-sm">
+      <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-anxin-risk-high/10 text-anxin-risk-high">
+        <Icon name="warning" className="h-7 w-7" strokeWidth={2} />
+      </span>
+      <p className="mt-3 text-lg font-semibold text-anxin-risk-high">{t.errors.heading}</p>
+      <p className="mt-2 text-base text-anxin-ink">{message}</p>
       <button
         type="button"
         onClick={onRetry}
-        className="mt-4 rounded-full bg-anxin-brand px-5 py-2.5 text-sm font-medium text-white hover:bg-anxin-brand-dark"
+        className="mt-5 rounded-xl bg-anxin-brand px-6 py-3 text-base font-semibold text-white transition hover:bg-anxin-brand-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-anxin-brand focus-visible:ring-offset-2"
       >
         {t.errors.retry}
       </button>
