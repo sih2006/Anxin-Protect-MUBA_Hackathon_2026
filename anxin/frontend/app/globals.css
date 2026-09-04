@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  background-color: theme("colors.anxin.bg");
+  color: theme("colors.anxin.ink");
+}
+
+body {
+  /* Design standard: readable Chinese typography -- generous line-height and
+     letter-spacing read far better for CJK glyphs than typical Latin defaults. */
+  line-height: 1.65;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+
+:lang(zh) {
+  line-height: 1.8;
+}
+
+/* Design standard: keyboard support -- a visible, high-contrast focus ring on
+   every interactive element, never suppressed. */
+:focus-visible {
+  outline: 3px solid theme("colors.anxin.brand");
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.sr-only-focusable:not(:focus) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
