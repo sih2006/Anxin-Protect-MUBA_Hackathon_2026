@@ -20,6 +20,7 @@ A detailed technical reference for the Next.js frontend that powers the Anxin bi
    - [InputPanel](#inputpanel)
    - [ProgressIndicator](#progressindicator)
    - [ResultsPanel](#resultspanel)
+   - [Icon](#icon)
    - [TruthScoreGauge](#truthscoregauge)
    - [RiskBadge](#riskbadge)
    - [ModelComparison](#modelcomparison)
@@ -81,8 +82,9 @@ frontend/
 │   ├── InputPanel.tsx    # Tab switcher (text/url/screenshot), OCR flow, submit
 │   ├── ProgressIndicator.tsx  # Spinner, stage labels, elapsed timer, cancel
 │   ├── ResultsPanel.tsx  # Full verification report layout
-│   ├── TruthScoreGauge.tsx    # Headline credibility score + bar
-│   ├── RiskBadge.tsx     # Low/medium/high badge: icon + text + colour
+│   ├── Icon.tsx          # Original inline-SVG icon set: the icon half of every colour+icon+words signal
+│   ├── TruthScoreGauge.tsx    # Headline credibility score as an SVG arc, plus the separate scam-risk band
+│   ├── RiskBadge.tsx     # Low/medium/high pill (icon + text + colour); kept, but no longer rendered by ResultsPanel
 │   ├── ModelComparison.tsx    # Side-by-side per-model verdict cards
 │   ├── TransparencyPanel.tsx  # Collapsible Gonka metadata + receipt links
 │   ├── MemeResult.tsx    # Meme/slang explanation layout (distinct styling)
@@ -280,56 +282,62 @@ The entire section has `role="status"` and `aria-live="polite"` so screen reader
 `components/ResultsPanel.tsx` renders the full `VerificationReport`. It is structured as a vertical stack of `<section>` elements, each independently labelled:
 
 **1. Main verdict section**
-- Disagreement badge (`"Models disagreed"`) or single-model badge (`"Not cross-verified"`) if applicable — shown as coloured pill in the section header
+- Disagreement badge (`"Models disagreed"`) or single-model badge (`"Not cross-verified"`) if applicable — a coloured pill with a warning icon in the section header
 - Quoted excerpt of the redacted input (`report.original_input_excerpt`)
-- The verdict label in large bold text (`verdictCredible` / `verdictQuestionable` / `verdictHighRisk` / `verdictInsufficient`)
-- `TruthScoreGauge` and fraud risk score/bar, side by side in a responsive grid
-- Risk badge, confidence, and evidence quality in a flex-wrap row
+- The verdict on a tinted band with a large matching icon (`VERDICT_CHROME`, shared with `ModelComparison`): green/check for credible, amber/question for questionable, red/cross for high risk, grey/dash for insufficient. The words say it, the icon shapes it, colour is third
+- `TruthScoreGauge` (arc + the scam-risk band beneath it) and the fraud risk score/bar, side by side in a responsive grid
+- Confidence and evidence quality in a flex-wrap row. The risk badge that used to sit here was removed: the band under the gauge already says the same thing, 30px higher
 - The bilingual consensus explanation paragraph
 
 **2. Warning signs** (only shown if `consensus.fraud_signals_*` is non-empty)
-- Red-bordered section with a `⚠` icon before each signal
+- Red, thick-bordered section; `<Icon name="warning" />` in the heading and before each signal
 - Language is selected by `language === "zh"` to pick `fraud_signals_zh` vs `fraud_signals_en`
 
 **3. Next actions**
-- Bullet list of `report.next_actions`, each rendered with `pickBilingual()` to show the right language
+- Brand-teal card (`border-anxin-brand bg-anxin-brand-soft`) with a shield icon, so the one card that tells the reader what to *do* reads as guidance rather than more findings
+- Each `report.next_actions` item rendered with `pickBilingual()` and a check icon
 
 **4. Model comparison**
 - Delegates to `<ModelComparison />`
 
-**5. Evidence sources**
-- Links list of `report.evidence` — each card shows the title as a link and the snippet below it
+**5. What we checked** (only shown if `report.claims` is non-empty)
+- Each `ExtractedClaim` the backend actually verified, with a type chip: `Factual claim` (teal), `Opinion` (grey), `Cannot be verified` (grey-blue). This is what stops "not enough evidence" reading as a failure: an opinion was never fact-checkable, and saying so is the honest answer
+
+**6. Evidence sources**
+- Links list of `report.evidence` — each card shows the title as a link and the snippet below it; a source count sits in the heading row
 - If empty, shows `t.results.noEvidence`
 
-**6. Limitations**
+**7. Limitations**
 - Flat list of `report.limitations_en` or `report.limitations_zh`
 
-**7. Transparency panel**
+**8. Transparency panel**
 - Delegates to `<TransparencyPanel calls={report.model_verdicts.map(v => v.meta)} />`
 
-**8. New check button**
+**9. New check button**
+
+### Icon
+
+`components/Icon.tsx` is a ten-glyph inline-SVG set (`shield`, `check`, `warning`, `cross`, `question`, `dash`, `text`, `link`, `image`, `sparkle`) written for this project — no icon library.
+
+It replaced the bare text glyphs (`✓` / `⚠` / `✕`) the app used before. Those are CJK-ambiguous codepoints: with a Chinese font active the browser often substitutes a full-width or emoji-styled variant, so the same warning rendered at a different size and weight in EN and ZH. Inline SVG renders identically in both languages, scales without blurring, and inherits `currentColor`, so an icon can never drift from its text label.
+
+Every icon is decorative and carries `aria-hidden="true"`; the caller always pairs it with a visible text label.
 
 ### TruthScoreGauge
 
-`components/TruthScoreGauge.tsx` renders the headline credibility score.
+`components/TruthScoreGauge.tsx` renders the headline credibility score and, separately, the scam-risk band. Props: `score: number` (0–100), `band: RiskBand`, `t: Dictionary`.
 
 It shows:
-- A label and the numeric score (`0–100`) in large bold type
-- A horizontal bar with `role="meter"` and `aria-valuenow/min/max/label` attributes
-- Bar colour: green (`bg-anxin-risk-low`) for scores ≥ 65, red for ≤ 35, amber in between
+- A semicircular SVG arc (`radius = size × 0.35`, single-path construction, an inner hairline, `0` / `100` endpoint labels) whose filled length is the score. The viewBox is cropped so the dial sits tight under its label
+- The numeric score in 44px type at the arc's centre, with `role="meter"` and `aria-valuenow/min/max/label`
+- Arc colour: green for scores ≥ 65, red for ≤ 35, amber in between — derived from the **score**, so the colour always agrees with the number printed inside it
+- Beneath the arc, a bordered strip for the **scam-risk band** (`consensus.risk_band`): a small "Risk to you" label, then `<Icon />` + text (`riskLow` / `riskMedium` / `riskHigh`) in the band's colour
 
-The bar colour **always** appears alongside the numeric score and the verdict text rendered elsewhere in the panel — it is never the sole indicator of meaning.
+The two signals are deliberately kept separate. `risk_band` tracks fraud risk, not credibility; driving the arc from it would let a green arc sit next to a red "high risk" badge, or worse, make the colour contradict the numeral it surrounds. Motion: the arc's `stroke-dashoffset` transitions on mount and honours `prefers-reduced-motion`.
 
 ### RiskBadge
 
-`components/RiskBadge.tsx` renders the risk level badge.
-
-Each `RiskBand` value is paired with:
-- A distinct icon glyph (`✓` / `⚠` / `✕`) — `aria-hidden="true"`
-- A text label from the dictionary (`riskLow` / `riskMedium` / `riskHigh`)
-- A background and foreground colour
-
-The icon glyphs are `aria-hidden` because they are decorative — the text label carries the semantic meaning for screen readers. Colour is never the only indicator.
+`components/RiskBadge.tsx` renders a low/medium/high pill: `<Icon />` (check / warning / cross), a dictionary label, and a colour pair. It is **no longer rendered by `ResultsPanel`** — the band strip inside `TruthScoreGauge` replaced it — but is kept as the reference implementation of the colour + icon + words pattern and for reuse elsewhere.
 
 ### ModelComparison
 
@@ -603,11 +611,11 @@ Every section that presents meaningful content has an `aria-labelledby` pointing
 | `TruthScoreGauge` bar | `role="meter"`, `aria-valuenow/min/max/label` | Score bar is a proper meter element |
 | Fraud risk bar | `role="meter"`, same attributes | Same for scam risk bar |
 | `TransparencyPanel` toggle | `aria-expanded={open}` + `sr-only` description | Screen readers know expand/collapse state |
-| `RiskBadge` icons | `aria-hidden="true"` | Decorative icons are hidden; text label carries meaning |
+| `Icon` SVGs (everywhere) | `aria-hidden="true"`, `focusable="false"` | Decorative icons are hidden; the adjacent text label carries meaning |
 
 ### Colour is never the only indicator
 
-Risk levels (`RiskBadge`) always pair colour with an icon **and** a text label. The fraud risk bar and truth score bar always appear alongside the numeric score. This ensures the meaning is accessible to colour-blind users and survives greyscale printing.
+Every risk, verdict and error state pairs colour with an inline-SVG icon **and** a text label (`Icon.tsx`; the risk band strip in `TruthScoreGauge`, the verdict band and warning cards in `ResultsPanel`, the verdict pills in `ModelComparison`). The truth-score arc and fraud-risk bar always appear alongside the numeric score. This keeps the meaning accessible to colour-blind users and intact under greyscale printing, and — because the icons are SVG rather than text glyphs — identical in the English and Chinese UIs.
 
 ### Screen reader only text
 

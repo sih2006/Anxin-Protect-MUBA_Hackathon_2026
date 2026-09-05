@@ -49,6 +49,17 @@ class Settings(BaseSettings):
     max_input_chars: int = Field(default=4000, alias="MAX_INPUT_CHARS")
     max_image_bytes: int = Field(default=8_000_000, alias="MAX_IMAGE_BYTES")
 
+    # --- Local OCR (screenshot mode only) ---
+    # Leave both unset when `tesseract` is on PATH with chi_sim installed (the
+    # Debian package or the Dockerfile). The Windows installer does NOT add
+    # itself to PATH, and its tessdata folder under Program Files is not
+    # writable without admin, so both the binary and the language-pack
+    # directory are configurable. Empty string means unset. TESSDATA_DIR is
+    # exported to the tesseract subprocess as TESSDATA_PREFIX (see ocr.py for
+    # why it is not passed as a --tessdata-dir flag).
+    tesseract_cmd: str | None = Field(default=None, alias="TESSERACT_CMD")
+    tessdata_dir: str | None = Field(default=None, alias="TESSDATA_DIR")
+
     @property
     def cors_origins(self) -> list[str]:
         return [o.strip() for o in self.cors_allow_origins.split(",") if o.strip()]

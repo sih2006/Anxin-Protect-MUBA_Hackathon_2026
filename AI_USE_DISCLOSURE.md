@@ -12,17 +12,17 @@ merge commits.
 
 | Area | Committer | Commits | What |
 |---|---|---|---|
-| Backend application (`backend/app/`) | `rpem0003` | 12 | FastAPI app factory, config and Pydantic schemas, Gonka Router client, SSRF-guarded evidence service, verification + consensus pipeline, meme mode, API routers, dependency files, `.gitignore`. Also `docs/BACKEND.md` (the backend technical reference) and the first README. |
+| Backend application (`backend/app/`), deployment and scripts | `rpem0003` | 22 | FastAPI app factory, config and Pydantic schemas, Gonka Router client, SSRF-guarded evidence service, verification + consensus pipeline, meme mode, API routers, dependency files, `.gitignore`, the Render Blueprint (`render.yaml`), `setup.sh` / `setup-*.ps1`, `check-gonka.sh`, `security-check.sh`. Also `docs/BACKEND.md`, `docs/FRONTEND.md`, and the repository README's setup and Gonka sections. |
 | Backend test suite (`backend/tests/`) | `eche0118` | 14 | 159 tests, runnable offline: consensus agreement/disagreement bands, Gonka client retries/fallback/auth, SSRF blocking, prompt-injection fencing, PII redaction, JSON extraction hardening, OCR input validation, schema rules, the meme-mode no-verdict guarantee, and mocked end-to-end runs. |
-| Repository README diagrams | `Lip Hong` | 2 | Mermaid user-flow, internal-process and class diagrams in the root `README.md`. |
-| Frontend (`anxin/frontend/`) and project documents | `sih2006` / `ihas0013-hue` (one person, two git identities) | 4 | Next.js UI, EN/ZH dictionaries, setup scripts, `anxin/README.md`, `PROBLEM.md`, `SOLUTION.md`, this file, `THIRD_PARTY_NOTICES.md`. |
+| Diagrams | `Lip Hong` | 3 | Mermaid user-flow, internal-process and class diagrams (`docs/UserFlow.md`, `docs/InternalProcess.md`, `docs/UML Class Diagram.md`). |
+| Frontend (`frontend/`), OCR engine fix, project documents | `sih2006` / `ihas0013-hue` (one person, two git identities) | 4 | Next.js UI and its redesign, EN/ZH dictionaries, `PROBLEM.md`, `SOLUTION.md`, the OCR engine-detection fix and `backend/Dockerfile`, the README's live-demo, deployment and OCR sections, this file, `THIRD_PARTY_NOTICES.md`. |
 
 ## What was AI-assisted
 
-**Frontend and documentation: confirmed.** The frontend redesign on 4-5
-September 2026 was done in Claude Code (Anthropic; Claude Opus 5 and
-Fable 5.1), driven and reviewed by `sih2006`. AI assistance produced or
-co-produced:
+**Frontend, OCR fix and documentation: confirmed.** The frontend redesign,
+the OCR engine fix, and the documentation updates on 4-5 September 2026 were
+done in Claude Code (Anthropic; Claude Opus 5 and Fable 5.1), driven and
+reviewed by `sih2006`. AI assistance produced or co-produced:
 
 - `TruthScoreGauge.tsx`, `ModelComparison.tsx`, `InputPanel.tsx`,
   `ResultsPanel.tsx`, `Header.tsx`, `ErrorState.tsx`,
@@ -30,8 +30,17 @@ co-produced:
   new `Icon.tsx`
 - six new keys in `lib/dictionaries/{en,zh,types}.ts` and the `brand-soft`
   token in `tailwind.config.ts`
-- the "Interface rules" and frontend sections of `anxin/README.md`, the
-  "UI components" section of `THIRD_PARTY_NOTICES.md`, and this file
+- the "Interface rules", "Live demo", "Live deployment (Render)" and
+  "Screenshot mode (OCR) setup" sections of `README.md`; the "UI components"
+  section of `THIRD_PARTY_NOTICES.md`; the `Icon`, `TruthScoreGauge` and
+  `RiskBadge` sections of `docs/FRONTEND.md`; and this file
+- the OCR engine fix (5 September 2026): `backend/app/ocr.py` now asks
+  Tesseract which language packs exist and raises a distinct error when the
+  engine itself is missing; `backend/app/routers/ocr.py` returns an honest
+  "engine not installed" warning instead of "no text found"; the
+  `TESSERACT_CMD` / `TESSDATA_DIR` settings in `backend/app/config.py`; five
+  tests in `backend/tests/test_ocr.py`; and `backend/Dockerfile`, which
+  bakes Tesseract and the `chi_sim` pack into a container image
 
 Two MIT-licensed components from the 21st.dev catalogue were retrieved
 through its MCP server and used as **design references** under `UI-10`.

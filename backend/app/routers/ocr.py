@@ -5,7 +5,7 @@ import logging
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
 from app.config import Settings, get_settings
-from app.ocr import UnsupportedImageError, extract_text, validate_image
+from app.ocr import OcrEngineUnavailableError, UnsupportedImageError, extract_text, validate_image
 from app.schemas import ErrorResponse, OcrResult
 
 logger = logging.getLogger("anxin.routers.ocr")
@@ -24,7 +24,23 @@ async def ocr(file: UploadFile = File(...), settings: Settings = Depends(get_set
     except UnsupportedImageError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
-    text, langs = extract_text(img)
+    try:
+        text, langs = extract_text(
+            img, tesseract_cmd=settings.tesseract_cmd, tessdata_dir=settings.tessdata_dir
+        )
+    except OcrEngineUnavailableError:
+        # Still 200: the review box opens empty so the person can type the
+        # text themselves, and the warning says what actually happened.
+        logger.error("OCR engine unavailable on this server (set TESSERACT_CMD / install tesseract)")
+        return OcrResult(
+            extracted_text="",
+            detected_languages=[],
+            warning=(
+                "The OCR engine (Tesseract) is not installed on this server, so the image could "
+                "not be read. You can type the text yourself instead."
+            ),
+        )
+
     warning = None
     if not text:
         warning = (

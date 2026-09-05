@@ -8,6 +8,52 @@ Tenners** for the Gonka Router "AI for Society" hackathon track.
 
 ---
 
+## Live demo
+
+| | |
+|---|---|
+| **Web app** | <https://anxin-frontend.onrender.com> |
+| **API health** | <https://anxin-backend.onrender.com/health> → must show `"gonka_mock_mode": false` |
+| **Demo video** | _link to be added before submission (YouTube or Loom, unlisted is fine)_ |
+| **Source** | <https://github.com/VRP2206/MUBA_Hackathon_2026> |
+
+Both services run on Render's free tier, which sleeps after ~15 idle minutes;
+the first request afterwards takes 30–60 seconds (measured 32 s on 5 Sep
+2026). Open both links a couple of minutes before you need them. See
+[Live deployment (Render)](#live-deployment-render) for how it is wired and
+what does not work there yet.
+
+### Devfolio submission checklist
+
+| Requirement | Where it is answered |
+|---|---|
+| Project description | Top of this file; [`SOLUTION.md`](SOLUTION.md); [`docs/`](docs/) |
+| Problem statement | [The problem](#the-problem); [`PROBLEM.md`](PROBLEM.md) |
+| Blockchain technology used | [Blockchain technology used](#blockchain-technology-used) |
+| Smart contract addresses (testnet) | [No smart contract](#no-smart-contract) — exact wording for the form is there |
+| Setup and installation | [Start here](#-start-here-where-does-my-api-key-go), [Run it](#run-it-two-terminals), [Quickstart](#quickstart) |
+| Team members | [Team](#team) |
+| Declaration of AI tools used | [`AI_USE_DISCLOSURE.md`](AI_USE_DISCLOSURE.md) |
+| Demonstration video (2–5 min) | [Live demo](#live-demo) table above |
+
+### Blockchain technology used
+
+Anxin runs on the **Gonka Network**, a decentralized AI-inference network,
+accessed through its official gateway, **Gonka Router**
+(`https://api.gonkarouter.io`). Every piece of AI reasoning in the product —
+claim extraction, both independent verifications, the meme explanation — is
+a Gonka inference call; nothing runs on a centralized model provider, and no
+development-assistant model is part of the running app.
+
+Verifiability comes from the network rather than from a contract we deploy:
+each inference returns a Gonka `X-Request-Id` and the devshard that served
+it, and each request id resolves at Gonka's public receipt endpoint. The
+report shows these per model call, and the receipt link opens independently
+of our server. Anxin issues no token and deploys no smart contract; see
+[No smart contract](#no-smart-contract).
+
+---
+
 ## ⚡ Start here: where does my API key go?
 
 **One file: `backend/.env`** (create it by copying `backend/.env.example`).
@@ -30,7 +76,7 @@ only ever read server-side -- it is never sent to the browser.
 |---|---|---|
 | **Python** | CPython **3.11 – 3.13** | From [python.org](https://www.python.org/downloads/), Anaconda, or the Microsoft Store. Tick *"Add python.exe to PATH"* during install. |
 | **Node.js** | 18+ | From [nodejs.org](https://nodejs.org/). |
-| Tesseract OCR | any recent | **Optional** — screenshot mode only. `winget install UB-Mannheim.TesseractOCR`. Everything else works without it. |
+| Tesseract OCR | 5.x | **Optional**, screenshot mode only. `winget install -e --id UB-Mannheim.TesseractOCR`, then follow [Screenshot mode (OCR) setup](#screenshot-mode-ocr-setup): the Windows installer does not add itself to PATH and ships English only. Everything else works without it. |
 
 > **Windows: do not use the MSYS2 / MinGW Python.** If `python3` in Git Bash
 > lives under `C:\msys64\...`, dependency installation *will* fail with
@@ -83,7 +129,7 @@ attention. (Prefer to do it by hand? See [Quickstart](#quickstart) below.)
 | Report shows a yellow "mock data" banner | `GONKA_MOCK_MODE` is still `true`, or `GONKA_API_KEY` is empty | Fix both in `backend/.env`, restart the backend |
 | `503 ... both verifier models were unavailable` | Key rejected, wrong model id, or the network is saturated | Check the backend terminal -- it logs the real reason (401 vs 429 vs timeout) |
 | Backend log says `HTTP 400` / `HTTP 404` for a model | A `GONKA_MODEL_*` id doesn't exist in the catalogue | Run `curl https://api.gonkarouter.io/v1/models -H "Authorization: Bearer $KEY"` and paste the exact id into `.env` |
-| Screenshot mode errors | Tesseract isn't installed | See [Backend](#backend) setup below -- everything else still works without it |
+| Screenshot tab says *"OCR engine is not installed"* or *"No text could be extracted"* for every image | Tesseract missing or not found. The Windows installer never adds itself to PATH; Render's native Python runtime has no Tesseract at all | Locally: set `TESSERACT_CMD` and `TESSDATA_DIR` in `backend/.env`, see [Screenshot mode (OCR) setup](#screenshot-mode-ocr-setup). On Render: switch the backend to the Docker image, see [Live deployment](#live-deployment-render). Text and Link modes are unaffected either way |
 | Evidence list is always empty | Outbound web search blocked by your network | Expected on restricted networks; verification still runs, and the report says evidence was unavailable |
 
 ---
@@ -189,10 +235,39 @@ cp .env.example .env   # defaults to GONKA_MOCK_MODE=true -- see below
 uvicorn app.main:app --reload --port 8000
 ```
 
-Requires the Tesseract OCR engine on the host for the screenshot mode:
-`apt-get install tesseract-ocr tesseract-ocr-chi-sim` (Debian/Ubuntu) or the
-equivalent for your OS. The API itself still runs without it; only
-`/api/ocr` needs it.
+#### Screenshot mode (OCR) setup
+
+Only the Screenshot tab needs the Tesseract engine on the machine running the
+backend; Text and Link modes never touch it, and the API runs without it.
+
+**Debian / Ubuntu (and `backend/Dockerfile`):**
+`apt-get install tesseract-ocr tesseract-ocr-chi-sim`. Nothing else to set.
+
+**Windows:**
+
+1. `winget install -e --id UB-Mannheim.TesseractOCR`
+2. The installer does **not** add itself to PATH and installs English only.
+   Its `tessdata` folder under Program Files is not writable without admin,
+   so give the app a folder of its own and add Simplified Chinese to it:
+   ```powershell
+   mkdir $env:USERPROFILE\tessdata
+   copy "C:\Program Files\Tesseract-OCR\tessdata\*.traineddata" $env:USERPROFILE\tessdata
+   curl -L -o $env:USERPROFILE\tessdata\chi_sim.traineddata https://github.com/tesseract-ocr/tessdata_fast/raw/main/chi_sim.traineddata
+   ```
+3. In `backend/.env`:
+   ```ini
+   TESSERACT_CMD=C:\Program Files\Tesseract-OCR\tesseract.exe
+   TESSDATA_DIR=C:\Users\<you>\tessdata
+   ```
+4. Restart the backend.
+
+How the app behaves: it asks Tesseract which language packs exist and reads
+`eng+chi_sim` when `chi_sim` is present, English only when it is not
+(Tesseract 5 silently drops a missing language and exits 0, so this is
+checked up front rather than caught). If the engine is missing entirely,
+`/api/ocr` still returns `200` with an explicit *"OCR engine is not
+installed"* warning and an empty, editable text box — never a fake "no text
+found".
 
 Dependencies are split so that running the app never requires a build
 toolchain: `requirements.txt` is runtime only, and the test/lint tooling
@@ -346,6 +421,63 @@ real key and `GONKA_MOCK_MODE=false`.** The transparency panel visibly
 flags any report generated in mock mode so this can never be mistaken for a
 real result during rehearsal.
 
+## Live deployment (Render)
+
+[`render.yaml`](render.yaml) is a Render Blueprint defining two free-tier web
+services, deployed from this repository's `main` branch:
+
+| Service | URL | Runtime | Root |
+|---|---|---|---|
+| `anxin-backend` | <https://anxin-backend.onrender.com> | Python (native) | `backend/` |
+| `anxin-frontend` | <https://anxin-frontend.onrender.com> | Node | `frontend/` |
+
+They are wired to each other by name: the frontend is built with
+`NEXT_PUBLIC_API_BASE_URL=https://anxin-backend.onrender.com`, and the
+backend's `CORS_ALLOW_ORIGINS` is exactly
+`https://anxin-frontend.onrender.com`. Rename one and you must change the
+other — and because `NEXT_PUBLIC_*` values are baked in at build time, the
+frontend needs a rebuild, not a restart.
+
+**The Gonka key is not in the repo.** `GONKA_API_KEY` is declared
+`sync: false`, so it is set once in the Render dashboard (backend service →
+Environment) and never appears in git. `GONKA_MOCK_MODE` is `"false"` in the
+Blueprint, so the deployed app makes real Gonka calls. Confirm any time at
+<https://anxin-backend.onrender.com/health>.
+
+**Free-tier cold start.** Render sleeps a free service after ~15 idle
+minutes; the next request takes 30–60 s (measured 32 s). For the pitch,
+open `/health` and the web app a couple of minutes before your slot and keep
+the tab alive. Better, follow the organisers' advice and play a pre-recorded
+demo while you talk — the response time on the live network is the one thing
+you cannot control on stage.
+
+**Screenshot mode does not work on the native Python runtime.** Render's
+`env: python` has no Tesseract and no `apt`, so `/api/ocr` answers *"OCR
+engine is not installed"* for every image there. Text and Link modes are
+unaffected. [`backend/Dockerfile`](backend/Dockerfile) bakes in Tesseract
+and the `chi_sim` pack; to enable OCR in production, change the backend
+service in `render.yaml` to build from it:
+
+```yaml
+  - type: web
+    name: anxin-backend
+    env: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile   # relative to rootDir
+    plan: free
+    envVars:                        # unchanged from the current file
+      ...
+```
+
+and delete its `buildCommand` / `startCommand` (the image's `CMD` starts
+uvicorn on `$PORT`). This is a deliberate switch, **not** applied by default:
+a Docker build that fails takes the backend down, so do it after the pitch,
+or test it on a second service first.
+
+**Python version is not pinned.** Render uses its default (3.11 at the time
+of writing); the requirements are tested on 3.11–3.13. To pin it, add
+`PYTHON_VERSION` (e.g. `"3.12.7"`) to the backend's `envVars`.
+
 ## Live Gonka check
 
 ```bash
@@ -409,10 +541,10 @@ extraction.
 This repository delivers the coded product (Epics 1-6 of the team's
 backlog): the FastAPI backend, the Gonka Router integration, the
 consensus/evidence pipeline, local OCR + meme mode, the bilingual Next.js
-frontend, and the automated test suite. It does **not** include things that
-aren't code: the actual cloud deployment, the recorded demo video, the pitch
-deck, rehearsals, or the Devfolio submission -- those are the team's
-remaining Epic 7/8 tasks, tracked in `docs/product-backlog.docx`. Also out
+frontend, the automated test suite, and the Render deployment described in
+[Live deployment (Render)](#live-deployment-render). It does **not** include
+the recorded demo video, the pitch deck, rehearsals, or the Devfolio
+submission itself -- those are the team's remaining Epic 7/8 tasks. Also out
 of scope by deliberate P0-first scope discipline (Table 9): CI workflow
 wiring, a vendored shadcn/ui component set (`UI-10`, P1 -- see
 `THIRD_PARTY_NOTICES.md`), and the optional deferred-hedge latency
@@ -437,7 +569,16 @@ optimization (`GON-08`, P2).
 | FE | Frontend & UX lead |
 | QA/DOCS | Quality, documentation & pitch lead |
 
-Who committed what, by git handle, is listed in the root
-[`README.md`](../README.md#contributors); the same breakdown, plus which
-members have confirmed their own AI use, is in `AI_USE_DISCLOSURE.md`.
-See `THIRD_PARTY_NOTICES.md` / `LICENSE` for open-source attribution.
+Who committed what, from the git log (merge commits excluded):
+
+| Committer | Contribution |
+|---|---|
+| `rpem0003` | Backend application: FastAPI app, schemas, Gonka client, evidence service, verification and consensus pipeline, meme mode, routers, dependencies, Render Blueprint, setup and check scripts. `docs/BACKEND.md`, `docs/FRONTEND.md`. Initial README. |
+| `eche0118` | The 159-test backend suite: consensus bands, Gonka client retries/fallback/auth, SSRF, prompt-injection fencing, PII redaction, JSON hardening, OCR validation, schema rules, meme no-verdict guarantee, mocked end-to-end runs. |
+| `Lip Hong` | User-flow, internal-process and class diagrams (`docs/UserFlow.md`, `docs/InternalProcess.md`, `docs/UML Class Diagram.md`). |
+| `sih2006` / `ihas0013-hue` (one person) | Frontend and its redesign, EN/ZH dictionaries, `PROBLEM.md`, `SOLUTION.md`, the OCR engine fix and `backend/Dockerfile`, AI-use disclosure, third-party notices. |
+
+How AI coding assistance was used, and which members have confirmed their
+own use, is in [`AI_USE_DISCLOSURE.md`](AI_USE_DISCLOSURE.md). See
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) and [`LICENSE`](LICENSE)
+for open-source attribution.
