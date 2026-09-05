@@ -25,7 +25,8 @@ running product; needed only to test or lint it:
 
 | Package | License | Purpose |
 |---|---|---|
-| pytest / pytest-asyncio | MIT | Test runner |
+| pytest | MIT | Test runner |
+| pytest-asyncio | Apache-2.0 | asyncio support for pytest |
 | respx | BSD-3-Clause | Mocking httpx calls in tests |
 | ruff | MIT | Linting/formatting |
 | pyright | MIT | Type checking |
