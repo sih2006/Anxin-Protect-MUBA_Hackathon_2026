@@ -53,12 +53,12 @@ Chinese, and passed `tsc`, ESLint and `next build` before it was committed
 by `sih2006`.
 
 **Backend, tests and diagrams: not asserted here.** The backend
-(`rpem0003`), the test suite (`eche0118`) and the README diagrams
+(`Rahul (rpem0003)`), the test suite (`eche0118`) and the README diagrams
 (`Lip Hong`) were committed by other team members. The author of this file
 cannot truthfully state whether, or how, those members used AI assistance.
 Each should add one line below confirming their own use, or confirming none:
 
-- `rpem0003`, backend and `docs/BACKEND.md`: _to confirm_
+- `rpem0003`, backend, `docs/BACKEND.md`, `docs/FRONTEND.md`: AI assisted coding. Review and final say on code correctness and quality was done verified by human `Rahul pemsing`
 - `eche0118`, test suite: _to confirm_
 - `Lip Hong`, README diagrams: _to confirm_
 
