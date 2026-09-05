@@ -129,7 +129,7 @@ attention. (Prefer to do it by hand? See [Quickstart](#quickstart) below.)
 | Report shows a yellow "mock data" banner | `GONKA_MOCK_MODE` is still `true`, or `GONKA_API_KEY` is empty | Fix both in `backend/.env`, restart the backend |
 | `503 ... both verifier models were unavailable` | Key rejected, wrong model id, or the network is saturated | Check the backend terminal -- it logs the real reason (401 vs 429 vs timeout) |
 | Backend log says `HTTP 400` / `HTTP 404` for a model | A `GONKA_MODEL_*` id doesn't exist in the catalogue | Run `curl https://api.gonkarouter.io/v1/models -H "Authorization: Bearer $KEY"` and paste the exact id into `.env` |
-| Screenshot tab says *"OCR engine is not installed"* or *"No text could be extracted"* for every image | Tesseract missing or not found. The Windows installer never adds itself to PATH; Render's native Python runtime has no Tesseract at all | Locally: set `TESSERACT_CMD` and `TESSDATA_DIR` in `backend/.env`, see [Screenshot mode (OCR) setup](#screenshot-mode-ocr-setup). On Render: switch the backend to the Docker image, see [Live deployment](#live-deployment-render). Text and Link modes are unaffected either way |
+| Screenshot tab says *"OCR engine is not installed"* or *"No text could be extracted"* for every image | Tesseract missing or not found. The Windows installer never adds itself to PATH; Render's native Python runtime has no Tesseract at all | Locally: set `TESSERACT_CMD` and `TESSDATA_DIR` in `backend/.env`, see [Screenshot mode (OCR) setup](#screenshot-mode-ocr-setup). On Render: the backend must be serving the Docker image, see [Live deployment](#live-deployment-render). Text and Link modes are unaffected either way |
 | Evidence list is always empty | Outbound web search blocked by your network | Expected on restricted networks; verification still runs, and the report says evidence was unavailable |
 
 ---
@@ -428,7 +428,7 @@ services, deployed from this repository's `main` branch:
 
 | Service | URL | Runtime | Root |
 |---|---|---|---|
-| `anxin-backend` | <https://anxin-backend.onrender.com> | Python (native) | `backend/` |
+| `anxin-backend` | <https://anxin-backend.onrender.com> | Docker (`python:3.12-slim` + Tesseract) | `backend/` |
 | `anxin-frontend` | <https://anxin-frontend.onrender.com> | Node | `frontend/` |
 
 They are wired to each other by name: the frontend is built with
@@ -451,32 +451,28 @@ the tab alive. Better, follow the organisers' advice and play a pre-recorded
 demo while you talk — the response time on the live network is the one thing
 you cannot control on stage.
 
-**Screenshot mode does not work on the native Python runtime.** Render's
-`env: python` has no Tesseract and no `apt`, so `/api/ocr` answers *"OCR
-engine is not installed"* for every image there. Text and Link modes are
-unaffected. [`backend/Dockerfile`](backend/Dockerfile) bakes in Tesseract
-and the `chi_sim` pack; to enable OCR in production, change the backend
-service in `render.yaml` to build from it:
+**Screenshot mode in production runs from a Docker image.** Render's native
+Python runtime has no `apt`, so it can never carry the Tesseract OCR engine,
+and `/api/ocr` there answers *"OCR engine is not installed"* for every image.
+The backend service therefore builds from
+[`backend/Dockerfile`](backend/Dockerfile) (`python:3.12-slim` + Tesseract +
+the `chi_sim` pack), with `healthCheckPath: /health` so Render only routes
+traffic to a new container once it answers — a broken build leaves the
+previous deploy serving instead of a gap. Text and Link modes never depended
+on any of this.
 
-```yaml
-  - type: web
-    name: anxin-backend
-    env: docker
-    rootDir: backend
-    dockerfilePath: ./Dockerfile   # relative to rootDir
-    plan: free
-    envVars:                        # unchanged from the current file
-      ...
-```
+**If the Blueprint sync refuses the runtime change.** Render does not let an
+existing service switch from a native runtime to Docker in place. If the
+dashboard shows the sync failing on `anxin-backend` for that reason: delete
+the `anxin-backend` service in the dashboard, then sync the Blueprint again
+(or push any commit). It is recreated with the same name, so the URL the
+frontend is built against stays `https://anxin-backend.onrender.com`. Re-enter
+`GONKA_API_KEY` in the new service's Environment tab — it is `sync: false`
+and is not carried over. Expect the first Docker build to take 3–5 minutes.
 
-and delete its `buildCommand` / `startCommand` (the image's `CMD` starts
-uvicorn on `$PORT`). This is a deliberate switch, **not** applied by default:
-a Docker build that fails takes the backend down, so do it after the pitch,
-or test it on a second service first.
-
-**Python version is not pinned.** Render uses its default (3.11 at the time
-of writing); the requirements are tested on 3.11–3.13. To pin it, add
-`PYTHON_VERSION` (e.g. `"3.12.7"`) to the backend's `envVars`.
+**Verify OCR is live:** open the web app, Screenshot tab, upload any image
+with text. Extracted text means the Docker deploy is serving; *"OCR engine is
+not installed"* means the previous native deploy still is.
 
 ## Live Gonka check
 

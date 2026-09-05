@@ -1,11 +1,18 @@
 services:
   - type: web
     name: anxin-backend
-    env: python
+    # Docker rather than the native Python runtime: native runtimes have no
+    # apt, so they can never carry the Tesseract OCR engine, and screenshot
+    # mode answers "OCR engine is not installed" for every image. The image
+    # (backend/Dockerfile) installs Tesseract + the chi_sim pack and pins
+    # python:3.12-slim. Paths below are relative to the repository root.
+    env: docker
     plan: free
-    rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    # Render only routes traffic to the new container once this returns 200,
+    # so a broken image leaves the previous deploy serving instead of a gap.
+    healthCheckPath: /health
     envVars:
       - key: GONKA_API_KEY
         sync: false
