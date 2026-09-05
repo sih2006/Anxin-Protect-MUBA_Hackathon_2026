@@ -20,8 +20,9 @@ Tenners** for the Gonka Router "AI for Society" hackathon track.
 Both services run on Render's free tier, which sleeps after ~15 idle minutes;
 the first request afterwards takes 30–60 seconds (measured 32 s on 5 Sep
 2026). Open both links a couple of minutes before you need them. See
-[Live deployment (Render)](#live-deployment-render) for how it is wired and
-what does not work there yet.
+[Live deployment (Render)](#live-deployment-render) for how it is wired.
+Screenshot mode (OCR) works on the live site: the backend runs from a Docker
+image that carries the Tesseract engine (verified 5 Sep 2026).
 
 ### Devfolio submission checklist
 
