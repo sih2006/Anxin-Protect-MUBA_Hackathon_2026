@@ -582,7 +582,7 @@ optimization (`GON-08`, P2).
 
 ## Team
 
-| Code | Role | name | Git userID |
+| Code | Role | Name | GitHub |
 |---|---|---|---|
 | LEAD | Product & integration lead | Rahul Pemsing | `rpem0003` |
 | BE | Backend & Gonka lead | Rahul Pemsing | `rpem0003` | 
@@ -595,9 +595,14 @@ Who committed what, from the git log (merge commits excluded):
 | Committer | Contribution |
 |---|---|
 | `rpem0003` | Backend application: FastAPI app, schemas, Gonka client, evidence service, verification and consensus pipeline, meme mode, routers, dependencies, Render Blueprint, setup and check scripts. `docs/BACKEND.md`, `docs/FRONTEND.md`. Initial README. |
-| `eche0118` | The 159-test backend suite: consensus bands, Gonka client retries/fallback/auth, SSRF, prompt-injection fencing, PII redaction, JSON hardening, OCR validation, schema rules, meme no-verdict guarantee, mocked end-to-end runs. |
+| `eche0118` | The 165-test backend suite: consensus bands, Gonka client retries/fallback/auth, SSRF, prompt-injection fencing, PII redaction, JSON hardening, OCR validation, schema rules, meme no-verdict guarantee, mocked end-to-end runs. |
 | `Lip Hong` | User-flow, internal-process and class diagrams (`docs/UserFlow.md`, `docs/InternalProcess.md`, `docs/UML Class Diagram.md`). |
 | `sih2006` / `ihas0013-hue` (one person) | Frontend and its redesign, EN/ZH dictionaries, `PROBLEM.md`, `SOLUTION.md`, the OCR engine fix and `backend/Dockerfile`, AI-use disclosure, third-party notices. |
+
+Commit author names differ from GitHub handles for two members, so the
+tables above reconcile as: `eche0118` (commits) is Huan Ee Chew
+(`AdamChew27`); `Lip Hong` (commits) is `lkho0014-arch`; `rpem0003` and
+`sih2006` / `ihas0013-hue` are the same in both.
 
 How AI coding assistance was used, and which members have confirmed their
 own use, is in [`AI_USE_DISCLOSURE.md`](AI_USE_DISCLOSURE.md). See
