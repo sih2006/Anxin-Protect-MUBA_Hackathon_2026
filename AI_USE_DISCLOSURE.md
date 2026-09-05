@@ -59,8 +59,8 @@ cannot truthfully state whether, or how, those members used AI assistance.
 Each should add one line below confirming their own use, or confirming none:
 
 - `rpem0003`, backend, `docs/BACKEND.md`, `docs/FRONTEND.md`: AI assisted coding. Review and final say on code correctness and quality was done verified by human `Rahul pemsing`
-- `eche0118`, test suite: _to confirm_
-- `Lip Hong`, README diagrams: _to confirm_
+- `eche0118`, test suite: AI assisted testing. Review and final say on code correctness and quality was done verified by human `Ee chew`
+- `Lip Hong`, README diagrams: AI help dictate how the format of the diagram should be. 
 
 An earlier revision of this file said the whole repository was "generated
 with Claude". That over-claimed on behalf of teammates and has been
