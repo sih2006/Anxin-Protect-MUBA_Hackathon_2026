@@ -62,7 +62,11 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins(self) -> list[str]:
-        return [o.strip() for o in self.cors_allow_origins.split(",") if o.strip()]
+        # Browsers send `Origin: https://host` with no trailing slash, and
+        # Starlette compares the string exactly. A value pasted from a browser
+        # bar or a chat message ("https://anxin-protect.com/") would therefore
+        # silently reject every request from the real site, so normalise it.
+        return [o.strip().rstrip("/") for o in self.cors_allow_origins.split(",") if o.strip().rstrip("/")]
 
     @property
     def gonka_configured(self) -> bool:

@@ -55,7 +55,10 @@ export default function InputPanel({ onSubmit, disabled }: Props) {
       const result = await runOcr(file);
       setOcrState({ phase: "review", text: result.extracted_text, warning: result.warning });
     } catch {
-      setOcrState({ phase: "failed", message: t.ocr.processingFailed });
+      // Open the review box empty rather than dead-ending on an error: the
+      // message says "type the text yourself", so there must be somewhere
+      // to type it without switching tabs.
+      setOcrState({ phase: "review", text: "", warning: t.ocr.processingFailed });
     }
   }
 

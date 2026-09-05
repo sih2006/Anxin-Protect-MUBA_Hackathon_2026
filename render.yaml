@@ -25,8 +25,11 @@ services:
         value: MiniMax
       - key: GONKA_MOCK_MODE
         value: "false"
+      # Every origin the web app is served from. Browsers send the Origin
+      # header without a trailing slash; the backend also strips one, but
+      # keep these exact. Add www if it is ever pointed at the frontend.
       - key: CORS_ALLOW_ORIGINS
-        value: https://anxin-frontend.onrender.com
+        value: https://anxin-protect.com,https://www.anxin-protect.com,https://anxin-frontend.onrender.com
       - key: GONKA_TIMEOUT_SECONDS
         value: "45"
       - key: GONKA_MAX_RETRIES

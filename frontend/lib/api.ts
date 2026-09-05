@@ -78,7 +78,10 @@ export function explainMeme(content: string, signal?: AbortSignal): Promise<Meme
 export async function runOcr(file: File): Promise<OcrResult> {
   const form = new FormData();
   form.append("file", file);
-  return request<OcrResult>("/api/ocr", { method: "POST", body: form }, 30_000);
+  // 90s, not 30s: a free-tier Render backend that has gone to sleep takes
+  // ~30s just to wake, so a 30s cap aborted the upload before the server had
+  // even started reading it. OCR itself takes a second or two.
+  return request<OcrResult>("/api/ocr", { method: "POST", body: form }, 90_000);
 }
 
 export function getHealth(): Promise<HealthResponse> {

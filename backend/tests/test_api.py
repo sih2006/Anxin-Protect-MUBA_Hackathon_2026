@@ -92,3 +92,16 @@ def test_cors_preflight_succeeds_for_the_frontend_origin(client: TestClient):
         },
     )
     assert resp.status_code == 200, "CORS preflight must succeed or the browser never sends the POST"
+
+
+def test_cors_origins_tolerate_a_trailing_slash():
+    """Browsers send `Origin: https://host` with no trailing slash and Starlette
+    compares exactly, so a value pasted from a browser bar or a chat message
+    ("https://anxin-protect.com/") would silently reject the real site."""
+    from app.config import Settings
+
+    origins = Settings(
+        GONKA_API_KEY="", GONKA_MOCK_MODE=True,
+        CORS_ALLOW_ORIGINS="https://anxin-protect.com/, https://anxin-frontend.onrender.com ,,",
+    ).cors_origins
+    assert origins == ["https://anxin-protect.com", "https://anxin-frontend.onrender.com"]
