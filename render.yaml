@@ -1,0 +1,50 @@
+services:
+  - type: web
+    name: anxin-backend
+    env: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GONKA_API_KEY
+        sync: false
+      - key: GONKA_BASE_URL
+        value: https://api.gonkarouter.io
+      - key: GONKA_CHAT_PATH
+        value: /v1/chat/completions
+      - key: GONKA_RECEIPT_PATH
+        value: /v1/receipts/{request_id}
+      - key: GONKA_MODEL_A
+        value: deepseek-ai/DeepSeek-V4-Flash-0731
+      - key: GONKA_MODEL_A_LABEL
+        value: DeepSeek
+      - key: GONKA_MODEL_B
+        value: MiniMaxAI/MiniMax-M2.7
+      - key: GONKA_MODEL_B_LABEL
+        value: MiniMax
+      - key: GONKA_MOCK_MODE
+        value: "false"
+      - key: CORS_ALLOW_ORIGINS
+        value: https://anxin-frontend.onrender.com
+      - key: GONKA_TIMEOUT_SECONDS
+        value: "45"
+      - key: GONKA_MAX_RETRIES
+        value: "1"
+      - key: GONKA_MAX_TOKENS
+        value: "2000"
+      - key: MAX_INPUT_CHARS
+        value: "4000"
+      - key: MAX_IMAGE_BYTES
+        value: "8000000"
+
+  - type: web
+    name: anxin-frontend
+    env: node
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NEXT_PUBLIC_API_BASE_URL
+        value: https://anxin-backend.onrender.com
