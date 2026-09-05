@@ -37,6 +37,25 @@ image that carries the Tesseract engine (verified 5 Sep 2026).
 | Declaration of AI tools used | [`AI_USE_DISCLOSURE.md`](AI_USE_DISCLOSURE.md) |
 | Demonstration video (2–5 min) | [Live demo](#live-demo) table above |
 
+### Gonka track brief — where each item is met
+
+| Gonka asked for | Anxin | Where |
+|---|---|---|
+| All AI reasoning and verification through gonkarouter.io — **mandatory** | Every model call goes through `backend/app/gonka_client.py`, the only module permitted to call a model. No other provider at runtime, ever | [Gonka Router integration](#gonka-router-integration); [`AI_USE_DISCLOSURE.md`](AI_USE_DISCLOSURE.md) |
+| Multi-model consensus, at least two models | `deepseek-ai/DeepSeek-V4-Flash-0731` and `MiniMaxAI/MiniMax-M2.7`, called concurrently on identical evidence, neither shown the other's answer, `X-Gonka-No-Fallback: true`, requested-vs-actual model checked | `backend/app/verifier.py`, `consensus.py`, `tests/test_gonka_client.py` |
+| Claim extraction from a URL, tweet, or text | Text, link, or screenshot (local OCR → editable text). Claims typed factual / opinion / unverifiable and shown in the report | `verifier.extract_claims`; "What we checked" in `ResultsPanel.tsx` |
+| Verification against real-time web data | `evidence.py` fetches the URL and runs a keyless web search, SSRF-guarded; the models reason over fenced evidence and never browse | `backend/app/evidence.py`, `tests/test_evidence_ssrf.py` |
+| Truth Score (0–100) + reasoning trace | Truth Score arc, separate scam-risk band, each model's reasoning in EN and ZH, consensus explanation, warning signs | `TruthScoreGauge.tsx`, `ModelComparison.tsx` |
+| Transparency UI with Gonka Request IDs for each inference step | For both verification calls: Request ID, devshard, requested vs actual model, public receipt link. The claim-extraction call's ID is captured server-side and not yet surfaced | `TransparencyPanel.tsx`; [Verifying it's really Gonka](#verifying-its-really-gonka) |
+| Neutrality prompt; cite evidence | System prompts fence user content as untrusted data and require evidence-based conclusions | `backend/app/prompts.py`, `tests/test_prompt_safety.py` |
+| Consensus logic for disagreement ("a major plus") | ≤ 20 points agree · 21–40 lean, confidence drops · > 40 refuse to average → *insufficient*. Fraud risk escalates, never averages down. Evidence gate caps confidence when no sources were found | `backend/app/consensus.py`, `tests/test_consensus.py` |
+| Live demo URL · documented repository · 2-minute live fact-check video | <https://anxin-protect.com> · this README and `docs/` · [Live demo](#live-demo) | — |
+
+Safety for the people it is built for — details masked before inference,
+nothing stored, never "call the number in the message", colour never the
+only signal — is set out in [`SOLUTION.md`](SOLUTION.md) ("Built for someone
+who is worried") and [Interface rules](#interface-rules).
+
 ### Blockchain technology used
 
 Anxin runs on the **Gonka Network**, a decentralized AI-inference network,
