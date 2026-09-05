@@ -563,12 +563,13 @@ optimization (`GON-08`, P2).
 
 ## Team
 
-| Code | Role |
-|---|---|
-| LEAD | Product & integration lead |
-| BE | Backend & Gonka lead |
-| FE | Frontend & UX lead |
-| QA/DOCS | Quality, documentation & pitch lead |
+| Code | Role | name | Git userID |
+|---|---|---|---|
+| LEAD | Product & integration lead | Rahul Pemsing | `rpem0003` |
+| BE | Backend & Gonka lead | Rahul Pemsing | `rpem0003` | 
+| TE | Testing Lead | Huan Ee chew | `AdamChew27` |
+| FE | Frontend & UX lead | Syed Ibrahim Hassan | `ihas0013-hue` & `sih2006` | 
+| QA/DOCS | Quality, documentation & pitch lead | Lip long | `lkho0014-arch`|
 
 Who committed what, from the git log (merge commits excluded):
 
