@@ -46,11 +46,15 @@ claim extraction, both independent verifications, the meme explanation — is
 a Gonka inference call; nothing runs on a centralized model provider, and no
 development-assistant model is part of the running app.
 
-Verifiability comes from the network rather than from a contract we deploy:
-each inference returns a Gonka `X-Request-Id` and the devshard that served
-it, and each request id resolves at Gonka's public receipt endpoint. The
-report shows these per model call, and the receipt link opens independently
-of our server. Anxin issues no token and deploys no smart contract; see
+Verifiability comes from Gonka Router's public receipts rather than from a
+contract we deploy: each inference returns a Gonka `X-Request-Id` and the
+devshard that served it, and each request id resolves at GonkaRouter's public,
+unauthenticated receipt endpoint. The report shows these per model call. A
+receipt is **independently verifiable against GonkaRouter — not something we
+could fabricate on our own server**: it attests that this request was served
+by this model, on this Gonka devshard, at this time. It is GonkaRouter's
+attestation, not a third party's, and it does not prove the claim itself is
+true. Anxin issues no token and deploys no smart contract; see
 [No smart contract](#no-smart-contract).
 
 ---
