@@ -14,7 +14,7 @@ Tenners** for the Gonka Router "AI for Society" hackathon track.
 |---|---|
 | **Web app** | <https://anxin-protect.com> (custom domain) — also <https://anxin-frontend.onrender.com> |
 | **API health** | <https://anxin-backend.onrender.com/health> → must show `"gonka_mock_mode": false` |
-| **Demo video** | _link to be added before submission (YouTube or Loom, unlisted is fine)_ |
+| **Demo video** | https://youtu.be/xfWZiAKybs8 |
 | **Source** | <https://github.com/VRP2206/MUBA_Hackathon_2026> |
 
 Both services run on Render's free tier, which sleeps after ~15 idle minutes;
