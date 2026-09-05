@@ -13,7 +13,7 @@ merge commits.
 | Area | Committer | Commits | What |
 |---|---|---|---|
 | Backend application (`backend/app/`), deployment and scripts | `rpem0003` | 22 | FastAPI app factory, config and Pydantic schemas, Gonka Router client, SSRF-guarded evidence service, verification + consensus pipeline, meme mode, API routers, dependency files, `.gitignore`, the Render Blueprint (`render.yaml`), `setup.sh` / `setup-*.ps1`, `check-gonka.sh`, `security-check.sh`. Also `docs/BACKEND.md`, `docs/FRONTEND.md`, and the repository README's setup and Gonka sections. |
-| Backend test suite (`backend/tests/`) | `eche0118` | 14 | 159 tests, runnable offline: consensus agreement/disagreement bands, Gonka client retries/fallback/auth, SSRF blocking, prompt-injection fencing, PII redaction, JSON extraction hardening, OCR input validation, schema rules, the meme-mode no-verdict guarantee, and mocked end-to-end runs. |
+| Backend test suite (`backend/tests/`) | `eche0118` | 14 | 165 tests, runnable offline: consensus agreement/disagreement bands, Gonka client retries/fallback/auth, SSRF blocking, prompt-injection fencing, PII redaction, JSON extraction hardening, OCR input validation, schema rules, the meme-mode no-verdict guarantee, and mocked end-to-end runs. |
 | Diagrams | `Lip Hong` | 3 | Mermaid user-flow, internal-process and class diagrams (`docs/UserFlow.md`, `docs/InternalProcess.md`, `docs/UML Class Diagram.md`). |
 | Frontend (`frontend/`), OCR engine fix, project documents | `sih2006` / `ihas0013-hue` (one person, two git identities) | 4 | Next.js UI and its redesign, EN/ZH dictionaries, `PROBLEM.md`, `SOLUTION.md`, the OCR engine-detection fix and `backend/Dockerfile`, the README's live-demo, deployment and OCR sections, this file, `THIRD_PARTY_NOTICES.md`. |
 

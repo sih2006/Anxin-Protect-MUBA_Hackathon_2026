@@ -283,7 +283,7 @@ To run the test suite (no live Gonka key or network access required -- see
 
 ```bash
 pip install "pytest>=8.3,<9" "pytest-asyncio>=0.24,<1.0" "respx>=0.21,<1.0"
-pytest -q          # 159 tests
+pytest -q          # 165 tests
 ```
 
 > **Known issue:** `pip install -r requirements-dev.txt` currently fails
